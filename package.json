@@ -1,0 +1,39 @@
+{
+  "name": "flowmates-mac",
+  "version": "1.0.0",
+  "private": true,
+  "repository": "https://github.com/khalilami2005-ctrl/flowmates-mac",
+  "description": "Activity measurement for macOS, analysed by a local vision model",
+  "scripts": {
+    "dev": "pnpm --filter @flowmates/mac dev",
+    "tauri": "pnpm --filter @flowmates/mac exec tauri",
+    "build": "pnpm --filter @flowmates/mac build",
+    "test": "pnpm --filter @flowmates/mac test",
+    "test:coverage": "pnpm --filter @flowmates/mac test:coverage",
+    "check": "pnpm run check:frontend && pnpm run check:rust",
+    "check:frontend": "pnpm --filter @flowmates/mac exec vite build",
+    "check:rust": "cargo fmt --manifest-path apps/agent/src-tauri/Cargo.toml -- --check && cargo clippy --manifest-path apps/agent/src-tauri/Cargo.toml --all-targets -- -D warnings",
+    "check:models": "node scripts/fetch-models.mjs --check",
+    "check:llama": "node scripts/fetch-models.mjs --check-binary",
+    "catalog:apps": "cargo run --manifest-path tools/popular-apps-catalog/Cargo.toml"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=22.14.0",
+    "pnpm": ">=8.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "dompurify": "3.4.12",
+      "picomatch@^4.0.0": "4.0.5",
+      "postcss": "8.5.23",
+      "rollup": "4.62.2"
+    }
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.2"
+  }
+}

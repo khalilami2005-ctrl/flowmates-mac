@@ -1,0 +1,30 @@
+{
+  "name": "@flowmates/mac",
+  "version": "1.0.0",
+  "private": true,
+  "repository": "https://github.com/khalilami2005-ctrl/flowmates-mac",
+  "description": "Activity measurement for macOS, analysed by a local vision model",
+  "engines": {
+    "node": ">=22.14.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "vite": "vite",
+    "dev": "tauri dev",
+    "fetch-models": "pnpm exec node ../../scripts/fetch-models.mjs",
+    "build": "tauri build",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml --lib",
+    "test:coverage": "cargo llvm-cov --manifest-path src-tauri/Cargo.toml --lib --summary-only"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.11.0",
+    "@tauri-apps/plugin-process": "^2.3.0",
+    "@tauri-apps/plugin-updater": "^2.9.0",
+    "jspdf": "^4.2.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.2",
+    "dotenv": "^17.2.3",
+    "vite": "^7.3.5"
+  }
+}

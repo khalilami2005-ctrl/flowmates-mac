@@ -1,0 +1,61 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Flowmates",
+  "version": "1.0.0",
+  "identifier": "eu.flowmates.mac",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeDevCommand": "pnpm --filter @flowmates/mac vite",
+    "beforeBuildCommand": "pnpm --filter @flowmates/mac exec node ../../scripts/fetch-models.mjs && pnpm --filter @flowmates/mac vite build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Flowmates",
+        "width": 370,
+        "height": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "minWidth": 340,
+        "minHeight": 400,
+        "theme": "Light"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:1420 ws://127.0.0.1:1420 https://*.supabase.co wss://*.supabase.co; script-src 'self'; style-src 'self'; font-src 'self' data:; img-src 'self' asset: http://asset.localhost data: blob: https:; object-src 'none'; base-uri 'self'; frame-src 'none'; form-action 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "app",
+      "dmg"
+    ],
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/icon.icns"
+    ],
+    "resources": {
+      "../../../THIRD_PARTY_NOTICES.md": "licenses/THIRD_PARTY_NOTICES.md",
+      "../../../local_llm/Qwen3-VL-2B-Instruct-Q3_K_M.gguf": "local_llm/Qwen3-VL-2B-Instruct-Q3_K_M.gguf",
+      "../../../local_llm/mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf": "local_llm/mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf"
+    },
+    "externalBin": [
+      "../../../local_llm/bin/llama-server"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "14.0",
+      "entitlements": "entitlements.plist",
+      "infoPlist": "Info.plist"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENCQzhBQzY5OEEwQUE5NzAKUldSd3FRcUthYXpJeXhMQ2JHSmhZRHNjMjJFRGl2Qng3cW0rMFJEaWtzNGdZVGZQZUpsdm51THkK",
+      "endpoints": [
+        "https://github.com/khalilami2005-ctrl/flowmates-releases/releases/latest/download/latest-macos.json"
+      ]
+    }
+  }
+}

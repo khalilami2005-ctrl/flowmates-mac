@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flowmates</title>
+  <meta name="description" content="Activity measurement for macOS, analysed by a local vision model">
+  <link rel="icon" href="/flowmates-mark.png" type="image/png" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="app-viewport">
+  <!-- ONBOARDING WIZARD (first-run work preferences) -->
+  <div class="onboarding-overlay" id="onboardingOverlay" aria-hidden="true">
+    <div class="onboarding-top">
+      <div class="onboarding-top-row">
+        <button type="button" class="onboarding-back" id="onboardingBackBtn" aria-label="Back">‹</button>
+        <div class="onboarding-progress-track">
+          <div class="onboarding-progress-fill" id="onboardingProgressFill"></div>
+        </div>
+      </div>
+    </div>
+    <div class="onboarding-body" id="onboardingBody"></div>
+    <div class="onboarding-footer">
+      <button type="button" class="button button-primary onboarding-continue" id="onboardingContinueBtn" disabled>
+        Continue
+      </button>
+    </div>
+  </div>
+
+  <!-- ANALYTICS CONSENT (first launch) -->
+  <div class="consent-overlay" id="analyticsConsentOverlay" aria-hidden="true" role="dialog" aria-labelledby="analyticsConsentTitle">
+    <div class="consent-card">
+      <h2 class="consent-title" id="analyticsConsentTitle">Would you like to help improve Flowmates?</h2>
+      <p class="consent-copy">
+        If you agree, Flowmates will store anonymized usage data including:
+      </p>
+      <ul class="consent-list">
+        <li>Daily time of use</li>
+        <li>The main core activity you perform during the week</li>
+      </ul>
+      <p class="consent-note">
+        This helps the Flowmates team improve the app. You can send additional feedback from Profile,
+        and change this preference there at any time. Flowmates works fully without sharing data.
+      </p>
+      <div class="consent-actions">
+        <button type="button" class="button button-secondary" id="analyticsConsentDeclineBtn">No thanks</button>
+        <button type="button" class="button button-primary" id="analyticsConsentAcceptBtn">Yes, help improve</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOUD ACTIVATION / LOGIN SPLASH -->
+  <div class="cloud-activation-overlay" id="loginScreen">
+    <div class="login-splash">
+      <div class="login-splash-hero">
+        <div class="login-preview-stage">
+          <div class="login-preview-card login-preview-summary">
+            <div class="login-preview-summary-title">Today's focus</div>
+            <div class="login-preview-bar-row">
+              <span class="login-preview-bar-pct">Coding</span>
+              <div class="login-preview-bar-track">
+                <div class="login-preview-bar-fill"></div>
+              </div>
+              <span class="login-preview-bar-time">2h 10m</span>
+            </div>
+            <div class="login-preview-bar-row">
+              <span class="login-preview-bar-pct">Review</span>
+              <div class="login-preview-bar-track">
+                <div class="login-preview-bar-fill"></div>
+              </div>
+              <span class="login-preview-bar-time">1h 25m</span>
+            </div>
+            <div class="login-preview-bar-row">
+              <span class="login-preview-bar-pct">Debug</span>
+              <div class="login-preview-bar-track">
+                <div class="login-preview-bar-fill"></div>
+              </div>
+              <span class="login-preview-bar-time">52m</span>
+            </div>
+          </div>
+
+          <div class="login-preview-card login-preview-streak">
+            <div class="login-preview-streak-head">
+              <span>Daily goal streak</span>
+              <span>🔥</span>
+            </div>
+            <div class="login-preview-streak-num">4</div>
+            <div class="login-preview-streak-days">
+              <span class="login-preview-streak-day done">M</span>
+              <span class="login-preview-streak-day done">T</span>
+              <span class="login-preview-streak-day done">W</span>
+              <span class="login-preview-streak-day done">T</span>
+              <span class="login-preview-streak-day">F</span>
+              <span class="login-preview-streak-day">S</span>
+              <span class="login-preview-streak-day">S</span>
+            </div>
+            <div class="login-preview-streak-note">Keep it up — 3 days to a 7-day streak!</div>
+          </div>
+
+          <div class="login-preview-card login-preview-report">
+            <div class="login-preview-report-icon">
+              <img src="/flowmates-mark.png" alt="">
+            </div>
+            <div class="login-preview-report-text">
+              <strong>Work report ready</strong>
+              <span>Local AI generated your weekly status from tracked activity.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="login-splash-content">
+        <h1 id="loginTitle">Welcome to Flowmates.</h1>
+        <p class="login-splash-tagline" id="loginSubtitle">Activity measured on this Mac.</p>
+
+        <div class="login-splash-auth">
+          <form id="workerLoginForm">
+            <div id="workerLoginError" class="auth-error"></div>
+            <div class="form-group u-mb-0">
+              <label class="label" for="workerEmail">Email</label>
+              <input type="email" id="workerEmail" class="input" placeholder="you@company.com" autocomplete="email" required>
+            </div>
+            <div class="form-group u-mb-0">
+              <label class="label" for="workerPassword">Password</label>
+              <input type="password" id="workerPassword" class="input" placeholder="Your account password"
+                autocomplete="current-password" required>
+            </div>
+            <button class="button button-primary" id="workerLoginBtn" type="submit">
+              Sign in
+            </button>
+          </form>
+
+          <div class="login-divider">or continue with</div>
+
+          <div id="loginOAuthRow">
+            <button class="button button-secondary u-w-full" id="loginGoogle" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" class="u-mr-8">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Continue with Google
+            </button>
+          </div>
+
+        </div>
+
+        <p class="login-splash-footer">
+          By signing in, you agree to Flowmates's Terms of Service and Privacy Policy.
+        </p>
+        <button class="button button-ghost login-splash-skip" id="closeCloudActivationBtn" type="button">
+          Continue in Free (Local) mode
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORK STATUS REPORT MODAL -->
+  <div class="report-modal-overlay" id="statusReportModal" aria-hidden="true">
+    <div class="report-modal" role="dialog" aria-labelledby="statusReportModalTitle">
+      <div class="report-modal-header">
+        <h2 id="statusReportModalTitle">Work Status Report</h2>
+        <button type="button" class="report-modal-close" id="closeStatusReportModal" aria-label="Close report">&times;</button>
+      </div>
+      <div class="report-modal-body" id="statusReportModalBody"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP (free-first — visible without login) -->
+  <div class="app-shell" id="mainApp">
+    <div class="tab-content">
+
+      <!-- TAB: Today -->
+      <div id="tabToday" class="tab-panel active">
+        <div class="today-header">
+          <div class="today-greeting" id="todayGreeting">Good morning!</div>
+        </div>
+
+        <div class="today-timer-section">
+          <div class="today-timer-ring">
+            <svg viewBox="0 0 200 200">
+              <circle class="timer-track" cx="100" cy="100" r="82"/>
+              <circle class="timer-progress" id="timerProgressRing" cx="100" cy="100" r="82"
+                stroke-dasharray="515.22" stroke-dashoffset="515.22"/>
+            </svg>
+            <div class="timer-inner">
+              <div class="timer-goal-label" id="timerGoalLabel">No goal target</div>
+              <div class="timer-display" id="timerDisplay">0:00</div>
+              <button class="play-timer-btn" id="playTimerBtn" disabled title="Start tracking">
+                <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="8,5 19,12 8,19"/>
+                </svg>
+                <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" class="u-hidden">
+                  <rect x="6" y="5" width="4" height="14" rx="1"/>
+                  <rect x="14" y="5" width="4" height="14" rx="1"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="timer-streak" id="timerStreak">
+            <span id="streakText">0 days Streak</span>
+          </div>
+
+          <div class="timer-controls">
+            <button class="stop-timer-btn" id="stopTimerBtn" title="Stop tracking and shut down server">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="1"/>
+              </svg>
+              Stop
+            </button>
+          </div>
+        </div>
+
+        <div class="today-goal-row">
+          <div class="form-group u-mb-0">
+            <label class="label" for="dailyGoalSelect">Daily goal</label>
+            <select id="dailyGoalSelect" class="select">
+              <option value="0">No goal</option>
+              <option value="1">1 hour</option>
+              <option value="2">2 hours</option>
+              <option value="3">3 hours</option>
+              <option value="4">4 hours</option>
+              <option value="5">5 hours</option>
+              <option value="6">6 hours</option>
+              <option value="7">7 hours</option>
+              <option value="8">8 hours</option>
+              <option value="9">9 hours</option>
+              <option value="10">10 hours</option>
+              <option value="11">11 hours</option>
+              <option value="12">12 hours</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="today-task-card">
+          <div class="form-group u-mb-8">
+            <label class="label">Current Task</label>
+            <div id="todayIntegrationControls">
+              <select id="jiraSelect" class="select u-w-full">
+                <option value="">Select Task...</option>
+                <option value="General">General / No Ticket</option>
+              </select>
+            </div>
+            <input type="text" id="manualTask" class="input u-mt-6 u-hidden" placeholder="What are you working on?">
+          </div>
+          <label class="checkbox-wrapper" id="syncToJiraWrapper">
+            <input type="checkbox" id="syncToJira" class="checkbox" checked>
+            <span class="checkbox-label">Associate activity with selected Jira task</span>
+          </label>
+        </div>
+
+        <div class="sr-only" aria-hidden="true">
+          <span id="statStatus">Off</span>
+          <span id="statSent">0</span>
+          <span id="statInterval">30s</span>
+          <span id="monitoringBadge">Off</span>
+          <button id="startBtn"></button>
+          <button id="pauseBtn"></button>
+          <button id="stopBtn"></button>
+        </div>
+      </div>
+
+      <!-- TAB: Summary -->
+      <div id="tabSummary" class="tab-panel">
+        <div id="summaryBody">
+          <div class="empty-state"><span class="loading"></span> Loading summary...</div>
+        </div>
+      </div>
+
+      <!-- TAB: AI Coach (Pro) -->
+      <div id="tabCloudInsights" class="tab-panel coach-panel">
+        <div class="coach-chat-shell" id="coachChatShell">
+          <div class="coach-chat-inner">
+            <div class="coach-usage-bar u-hidden" id="coachUsageBar"></div>
+            <div class="coach-messages" id="coachMessages">
+              <div class="coach-empty" id="coachEmptyState">
+                <div class="coach-empty-title">What's next for your work?</div>
+                <div class="coach-empty-sub">Focus, flow, and planning — grounded in your tracked activity.</div>
+              </div>
+            </div>
+            <div class="coach-thinking u-hidden" id="coachThinking">Thinking…</div>
+          </div>
+          <div class="coach-composer-wrap">
+            <form class="coach-composer" id="coachComposerForm">
+              <textarea id="coachInput" class="coach-input" rows="2"
+                placeholder="Ask about focus, activity, planning, or your week…" maxlength="500"></textarea>
+              <div class="coach-composer-footer">
+                <span class="coach-char-count" id="coachCharCount">0/500</span>
+                <button type="submit" class="coach-send-btn" id="coachSendBtn" title="Send" aria-label="Send">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
+              </div>
+            </form>
+            <div class="coach-quick-prompts" id="coachQuickPrompts">
+              <button type="button" class="coach-quick-btn" data-coach-prompt="How focused was I this week?">Focus this week</button>
+              <button type="button" class="coach-quick-btn" data-coach-prompt="What should I tackle next?">What's next?</button>
+              <button type="button" class="coach-quick-btn" data-coach-prompt="Where am I losing time to distractions?">Distractions</button>
+            </div>
+          </div>
+        </div>
+        <div class="coach-lock-overlay" id="coachLockOverlay">
+          <div class="coach-lock-card">
+            <h3 id="coachLockTitle">Upgrade to Pro</h3>
+            <p id="coachLockText">Unlock your AI coach — personalized guidance from your tracked activity.</p>
+            <button type="button" class="button button-primary u-w-full" id="coachUpgradeBtn">Activate cloud</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Profile -->
+      <div id="tabProfile" class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-title-row">
+              <img src="/flowmates-mark.png" alt="" class="header-logo" width="26" height="26" />
+              <div class="card-title">Flowmates</div>
+            </div>
+            <div class="badge badge-success plan-badge-free" id="loginBadge">Free (Local)</div>
+          </div>
+
+          <div class="status-indicator">
+            <div class="status-dot" id="ollamaDot"></div>
+            <span class="status-text" id="ollamaStatus">Checking Vision Model...</span>
+          </div>
+
+          <div id="userProfile">
+            <div class="user-profile">
+              <img id="userAvatar" class="user-avatar u-hidden" src="" alt="">
+              <div class="user-info">
+                <div class="user-name" id="userName">Guest</div>
+                <div class="user-email" id="userEmail">Free local mode</div>
+              </div>
+              <button class="button button-primary u-px-10 u-py-6 u-text-xs" id="activateCloudBtn">
+                Activate cloud
+              </button>
+              <button class="button button-ghost u-px-8 u-py-4 u-hidden" id="logoutBtn" title="Sign out of cloud features"><svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card u-hidden" id="licenseActivationCard">
+          <div class="card-header">
+            <div class="card-title">Activate license</div>
+          </div>
+          <p class="upgrade-hint u-mb-12">
+            Enter your Individual license code to unlock sync, cloud AI insights, and integrations.
+          </p>
+          <div class="form-group u-mb-0">
+            <label class="label" for="profileLicenseCode">License code</label>
+            <div class="u-flex u-gap-6">
+              <input type="text" id="profileLicenseCode" class="input u-flex-1 u-mono" placeholder="FS-XXXX-XXXX"
+                autocomplete="off">
+              <button type="button" class="button button-primary u-px-12 u-py-8" id="claimLicenseBtn">
+                Activate
+              </button>
+            </div>
+            <div id="licenseActivationStatus" class="u-text-xs u-text-muted u-mt-6"></div>
+          </div>
+        </div>
+
+        <div class="card" id="workPreferencesCard">
+          <div class="card-header">
+            <div class="card-title">Work preferences</div>
+          </div>
+          <p class="onboarding-prefs-summary" id="workPreferencesSummary">Not set yet.</p>
+          <button type="button" class="button button-secondary u-w-full u-mt-8" id="editWorkPreferencesBtn">
+            Edit work preferences
+          </button>
+        </div>
+
+        <div class="card" id="privacyAnalyticsCard">
+          <div class="card-header">
+            <div class="card-title">Privacy &amp; analytics</div>
+          </div>
+          <p class="upgrade-hint u-mb-0">
+            Help improve Flowmates with anonymized usage data. No account or personal information is collected.
+          </p>
+          <label class="consent-toggle-row" for="analyticsConsentToggle">
+            <input type="checkbox" id="analyticsConsentToggle">
+            <span>Share anonymized usage data</span>
+          </label>
+          <p class="onboarding-prefs-summary" id="analyticsConsentStatus">Not set yet.</p>
+          <div class="form-group u-mt-12 u-mb-0">
+            <label class="label" for="appFeedbackInput">Send feedback</label>
+            <textarea id="appFeedbackInput" class="input" rows="3" maxlength="2000"
+              placeholder="Tell us what you think about Flowmates…"></textarea>
+            <button type="button" class="button button-secondary u-w-full u-mt-8" id="sendFeedbackBtn">
+              Send feedback
+            </button>
+          </div>
+        </div>
+
+        <div class="card" id="integrationsCard">
+          <div class="card-header">
+            <div class="card-title">Integrations</div>
+          </div>
+
+          <div class="u-mb-12" id="integrationsProviderRow">
+            <div class="label u-mb-6">Task Provider (paid plans)</div>
+            <div class="u-flex u-gap-6">
+              <button class="button button-secondary u-flex-1 u-p-8 u-text-xs" id="linkJiraBtn">
+                <svg width="12" height="12" viewBox="0 0 24 24" class="u-mr-4">
+                  <path fill="#2684FF"
+                    d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005z" />
+                </svg>
+                <span id="jiraLinkStatus">Link Jira</span>
+              </button>
+              <button class="button button-secondary u-flex-1 u-p-8 u-text-xs" id="linkLinearBtn">
+                <svg width="12" height="12" viewBox="0 0 24 24" class="u-mr-4">
+                  <path fill="#5E6AD2"
+                    d="M3.357 3.357a12.19 12.19 0 0 1 17.286 0 12.19 12.19 0 0 1 0 17.286 12.19 12.19 0 0 1-17.286 0 12.19 12.19 0 0 1 0-17.286z" />
+                </svg>
+                <span id="linearLinkStatus">Link Linear</span>
+              </button>
+            </div>
+          </div>
+
+          <p class="upgrade-hint u-hidden" id="integrationsUpgradeHint">
+            Jira and Linear linking require an Individual or Team license.
+          </p>
+
+          <div class="form-group" id="teamCodeGroup">
+            <label class="label">Team Code (from PM)</label>
+            <div class="u-flex u-gap-6">
+              <input type="text" id="teamCodeInput" class="select u-flex-1 u-mono" placeholder="Enter team code...">
+              <button class="button button-primary u-px-12 u-py-8" id="joinTeamBtn">Join</button>
+            </div>
+            <div id="teamStatus" class="u-text-xs u-text-muted u-mt-4"></div>
+          </div>
+
+          <div class="form-group u-hidden" id="teamSelectorGroup">
+            <label class="label">Active Team</label>
+            <select id="teamSelect" class="select">
+              <option value="">No team selected</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="tabToday" id="navToday">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="nav-label">Today</span>
+      </button>
+      <button class="nav-item" data-tab="tabSummary" id="navSummary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span class="nav-label">Summary</span>
+      </button>
+      <button class="nav-item nav-pro nav-pro-locked" data-tab="tabCloudInsights" id="navCloudInsights">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/>
+          <path d="M5 19h14"/><path d="M8 19v-3"/><path d="M16 19v-3"/>
+        </svg>
+        <span class="nav-label" id="navCloudInsightsLabel">Pro</span>
+      </button>
+      <button class="nav-item" data-tab="tabProfile" id="navProfile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span class="nav-label">Profile</span>
+      </button>
+    </nav>
+  </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- SETUP OVERLAY -->
+  <div id="setupOverlay" class="setup-overlay u-hidden">
+    <div class="setup-card">
+      <div class="setup-spinner"></div>
+      <div class="setup-status" id="setupStatus">Starting local AI…</div>
+      <div class="progress-container">
+        <div class="progress-bar" id="setupProgress"></div>
+      </div>
+      <div class="setup-subtext" id="setupSubtext">This may take a minute or two</div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>
