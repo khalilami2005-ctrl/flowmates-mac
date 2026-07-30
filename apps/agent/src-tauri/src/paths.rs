@@ -39,15 +39,15 @@ pub fn app_data_dir() -> Result<PathBuf, String> {
     Ok(dir)
 }
 
-/// Path a `dev-agent.db`. Crea el directorio padre si hace falta.
+/// Path to `dev-agent.db`. Creates the parent directory when needed.
 pub fn db_path() -> Result<PathBuf, String> {
     let path = app_data_dir()?.join(DB_FILE);
     secure_existing_private_file(&path)?;
     Ok(path)
 }
 
-/// Variante infalible para sitios donde no podemos propagar Result (panic hooks,
-/// static init). En ese caso cae a `.` que es subóptimo pero no panica.
+/// Infallible variant for places that cannot propagate a `Result` — panic hooks,
+/// static initialisation. It falls back to `.`, which is poor but never panics.
 pub fn db_path_or_fallback() -> PathBuf {
     db_path().unwrap_or_else(|_| PathBuf::from(DB_FILE))
 }
@@ -89,7 +89,8 @@ fn private_log_path(filename: &str) -> Result<PathBuf, String> {
     Ok(path)
 }
 
-/// PNG de capture temporaires pour le diagnostic, dans le même arbre privé que la base locale.
+/// Temporary screenshot PNGs for diagnostics, in the same private tree as the
+/// local database.
 pub fn screenshots_tmp_dir() -> Result<PathBuf, String> {
     let dir = app_data_dir()?.join(SCREENSHOTS_TMP_DIR);
     if !dir.exists() {
@@ -161,10 +162,10 @@ pub fn prune_screenshots_tmp_older_than(max_age: std::time::Duration) -> Result<
     Ok(removed)
 }
 
-/// Resuelve el directorio de recursos bundlados donde vive `local_llm/`.
+/// Resolves the bundled-resources directory where `local_llm/` lives.
 ///
-/// Dans l'application macOS, Tauri place `bundle.resources` sous le dossier
-/// de ressources du bundle. En dev, on retombe sur le layout du dépôt.
+/// In the macOS application, Tauri places `bundle.resources` under the bundle's
+/// resource folder. In dev we fall back to the repository layout.
 pub fn resource_local_llm_dir(app: &AppHandle) -> Result<PathBuf, String> {
     let resource_dir = app
         .path()

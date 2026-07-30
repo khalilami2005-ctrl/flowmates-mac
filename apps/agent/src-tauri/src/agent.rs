@@ -1276,7 +1276,8 @@ fn last_chars(text: &str, max_chars: usize) -> String {
     tail.into_iter().collect()
 }
 
-/// Estado del proceso hijo que Flowmates lanzó (no confundir con un llama-server huérfano).
+/// State of the child process Flowmates itself launched — not to be confused with
+/// an orphaned llama-server left behind by an earlier run.
 #[tauri::command]
 pub fn llama_managed_process_status() -> Result<serde_json::Value, String> {
     let mut lifecycle = lock_server_lifecycle();

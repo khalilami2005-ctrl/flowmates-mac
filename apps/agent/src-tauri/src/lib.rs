@@ -122,3 +122,17 @@ pub fn run() {
         }
     });
 }
+
+/// One-line description of the backend configuration, for startup logging.
+///
+/// Never echoes the key: only whether one is present. A log line that leaks a
+/// credential is worse than no log line at all.
+pub fn backend_status() -> String {
+    let url = sync_env::supabase_url();
+    let has_key = !sync_env::supabase_anon_key().is_empty();
+    match (url.is_empty(), has_key) {
+        (true, _) => "none configured — local measurement only".to_string(),
+        (false, false) => format!("{url} (NO KEY — cloud stays unavailable)"),
+        (false, true) => format!("{url} (key present)"),
+    }
+}

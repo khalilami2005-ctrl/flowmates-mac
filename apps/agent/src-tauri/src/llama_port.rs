@@ -10,12 +10,12 @@
 //!    development ports, to reduce collisions.
 //! 2. After the first probe `bind`, an **immediate second `bind`** detects whether the port
 //!    was claimed between the drop and the next attempt (reject it and try another).
-//! 3. Fallback a `127.0.0.1:0` con **reintentos y backoff** si el rango está lleno.
-//! 4. `spawn_llama_managed_child` **reintenta** con otro puerto ante `EADDRINUSE` / log de fallo
-//!    de escucha (ver `agent.rs`).
+//! 3. Fall back to `127.0.0.1:0` with **retries and backoff** when the range is full.
+//! 4. `spawn_llama_managed_child` **retries** on another port when it sees `EADDRINUSE`
+//!    or a listen-failure log line (see `agent.rs`).
 //!
-//! Todas las URLs usan **`127.0.0.1`**, nunca `localhost`, para alinear cliente y `--host` del
-//! servidor (IPv4 estable frente a `::1`).
+//! Every URL uses **`127.0.0.1`**, never `localhost`, to keep the client and the
+//! server's `--host` aligned — a stable IPv4 rather than `::1`.
 
 use std::io;
 use std::net::{Ipv4Addr, TcpListener};
@@ -25,7 +25,7 @@ use std::time::Duration;
 
 static MANAGED_LLAMA_PORT: Mutex<Option<u16>> = Mutex::new(None);
 
-/// Por debajo del rango éphemeral habitual de muchos Linux; alejado de 3000/5000/8000/8080.
+/// Below the ephemeral range most Linux kernels use, and far from 3000/5000/8000/8080.
 const FLOWMATES_PORT_MIN: u16 = 40_000;
 const FLOWMATES_PORT_MAX: u16 = 44_999;
 
@@ -44,7 +44,7 @@ fn lock_managed_port<'a>() -> std::sync::MutexGuard<'a, Option<u16>> {
     }
 }
 
-/// `true` si el error indica que el puerto TCP local ya está en uso.
+/// `true` when the error means the local TCP port is already taken.
 pub(crate) fn tcp_bind_addr_in_use(err: &io::Error) -> bool {
     matches!(err.kind(), io::ErrorKind::AddrInUse)
 }
@@ -100,8 +100,8 @@ fn tcp_bind_ephemeral_ipv4_port_with_backoff() -> Result<u16, String> {
     ))
 }
 
-/// Elige un puerto en loopback IPv4 para `llama-server`: rango dedicado Flowmates primero,
-/// luego `:0` con reintentos.
+/// Picks an IPv4 loopback port for `llama-server`: the dedicated Flowmates range
+/// first, then `:0` with retries.
 pub fn pick_localhost_listen_port() -> Result<u16, String> {
     if let Some(p) = pick_port_in_preferred_range() {
         return Ok(p);
