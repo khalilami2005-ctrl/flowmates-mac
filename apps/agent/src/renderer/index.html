@@ -272,49 +272,6 @@
         </div>
       </div>
 
-      <!-- TAB: AI Coach (Pro) -->
-      <div id="tabCloudInsights" class="tab-panel coach-panel">
-        <div class="coach-chat-shell" id="coachChatShell">
-          <div class="coach-chat-inner">
-            <div class="coach-usage-bar u-hidden" id="coachUsageBar"></div>
-            <div class="coach-messages" id="coachMessages">
-              <div class="coach-empty" id="coachEmptyState">
-                <div class="coach-empty-title">What's next for your work?</div>
-                <div class="coach-empty-sub">Focus, flow, and planning — grounded in your tracked activity.</div>
-              </div>
-            </div>
-            <div class="coach-thinking u-hidden" id="coachThinking">Thinking…</div>
-          </div>
-          <div class="coach-composer-wrap">
-            <form class="coach-composer" id="coachComposerForm">
-              <textarea id="coachInput" class="coach-input" rows="2"
-                placeholder="Ask about focus, activity, planning, or your week…" maxlength="500"></textarea>
-              <div class="coach-composer-footer">
-                <span class="coach-char-count" id="coachCharCount">0/500</span>
-                <button type="submit" class="coach-send-btn" id="coachSendBtn" title="Send" aria-label="Send">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                  </svg>
-                </button>
-              </div>
-            </form>
-            <div class="coach-quick-prompts" id="coachQuickPrompts">
-              <button type="button" class="coach-quick-btn" data-coach-prompt="How focused was I this week?">Focus this week</button>
-              <button type="button" class="coach-quick-btn" data-coach-prompt="What should I tackle next?">What's next?</button>
-              <button type="button" class="coach-quick-btn" data-coach-prompt="Where am I losing time to distractions?">Distractions</button>
-            </div>
-          </div>
-        </div>
-        <div class="coach-lock-overlay" id="coachLockOverlay">
-          <div class="coach-lock-card">
-            <h3 id="coachLockTitle">Upgrade to Pro</h3>
-            <p id="coachLockText">Unlock your AI coach — personalized guidance from your tracked activity.</p>
-            <button type="button" class="button button-primary u-w-full" id="coachUpgradeBtn">Activate cloud</button>
-          </div>
-        </div>
-      </div>
-
       <!-- TAB: Profile -->
       <div id="tabProfile" class="tab-panel">
         <div class="card">
@@ -460,13 +417,6 @@
           <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
         <span class="nav-label">Summary</span>
-      </button>
-      <button class="nav-item nav-pro nav-pro-locked" data-tab="tabCloudInsights" id="navCloudInsights">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/>
-          <path d="M5 19h14"/><path d="M8 19v-3"/><path d="M16 19v-3"/>
-        </svg>
-        <span class="nav-label" id="navCloudInsightsLabel">Pro</span>
       </button>
       <button class="nav-item" data-tab="tabProfile" id="navProfile">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

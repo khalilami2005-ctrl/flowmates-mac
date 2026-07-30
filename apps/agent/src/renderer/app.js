@@ -225,7 +225,6 @@
       const badge = document.getElementById('loginBadge');
       const activateBtn = document.getElementById('activateCloudBtn');
       const logoutBtn = document.getElementById('logoutBtn');
-      const navCloud = document.getElementById('navCloudInsights');
       const integrationsCard = document.getElementById('integrationsCard');
       const integrationsProviderRow = document.getElementById('integrationsProviderRow');
       const upgradeHint = document.getElementById('integrationsUpgradeHint');
@@ -263,16 +262,11 @@
           }
           if (logoutBtn) logoutBtn.classList.add('u-hidden');
         }
-        if (navCloud) {
-          navCloud.classList.remove('u-hidden');
-          navCloud.classList.add('nav-pro-locked');
-        }
         if (integrationsCard) integrationsCard.classList.add('paid-feature-locked');
         if (integrationsProviderRow) integrationsProviderRow.classList.add('u-hidden');
         if (upgradeHint) upgradeHint.classList.remove('u-hidden');
         if (teamCodeGroup) teamCodeGroup.classList.add('u-hidden');
         updateLicenseActivationCard();
-        updateCoachLockState();
         return;
       }
 
@@ -291,12 +285,6 @@
       if (integrationsProviderRow) integrationsProviderRow.classList.toggle('u-hidden', !canIntegrate);
       if (upgradeHint) upgradeHint.classList.toggle('u-hidden', canIntegrate);
       if (teamCodeGroup) teamCodeGroup.classList.toggle('u-hidden', !isTeamPlan(plan));
-
-      if (navCloud) {
-        navCloud.classList.remove('u-hidden');
-        navCloud.classList.toggle('nav-pro-locked', !currentEntitlements.can_cloud_ai);
-      }
-      updateCoachLockState();
     }
 
     async function persistEntitlements(entitlements) {
@@ -1101,15 +1089,6 @@
       if (teamGroup) teamGroup.classList.add('u-hidden');
       renderTeamStatus('Active team: ', 'none');
 
-      coachMessages = [];
-      const coachMsgContainer = document.getElementById('coachMessages');
-      if (coachMsgContainer) coachMsgContainer.innerHTML = '';
-      coachUsage = null;
-      const coachUsageBar = document.getElementById('coachUsageBar');
-      if (coachUsageBar) coachUsageBar.style.width = '0%';
-      const coachUsageLabel = document.getElementById('coachUsageLabel');
-      if (coachUsageLabel) coachUsageLabel.textContent = '';
-
       todayTotalSeconds = 0;
       updateGoalUI();
       const timerDisplay = document.getElementById('timerDisplay');
@@ -1305,251 +1284,6 @@
     document.getElementById('activateCloudBtn').onclick = handleActivateCloudClick;
     document.getElementById('closeCloudActivationBtn').onclick = hideCloudActivationPanel;
     document.getElementById('claimLicenseBtn').onclick = handleClaimLicense;
-
-    const COACH_MAX_CHARS = 500;
-    let coachMessages = [];
-    let coachSending = false;
-    let coachUsage = null;
-
-    function canUseCoachChat() {
-      return Boolean(
-        authSession &&
-        currentEntitlements &&
-        currentEntitlements.can_cloud_ai &&
-        isPaidActive()
-      );
-    }
-
-    function updateCoachLockState() {
-      const shell = document.getElementById('coachChatShell');
-      const overlay = document.getElementById('coachLockOverlay');
-      const title = document.getElementById('coachLockTitle');
-      const text = document.getElementById('coachLockText');
-      const btn = document.getElementById('coachUpgradeBtn');
-      const locked = !canUseCoachChat();
-
-      if (shell) shell.classList.toggle('is-locked', locked);
-      if (overlay) overlay.classList.toggle('visible', locked);
-
-      if (locked && title && text && btn) {
-        if (!authSession) {
-          title.textContent = 'Upgrade to Pro';
-          text.textContent = 'Unlock your AI coach — personalized guidance from your tracked activity.';
-          btn.textContent = 'Activate cloud';
-        } else if (!isPaidActive()) {
-          title.textContent = 'Upgrade to Pro';
-          text.textContent = 'Activate your Individual or Team license to chat with your AI coach.';
-          btn.textContent = 'Activate license';
-        } else {
-          title.textContent = 'Pro feature';
-          text.textContent = 'Your plan does not include the AI coach yet. Upgrade to Pro to continue.';
-          btn.textContent = 'View Profile';
-        }
-      }
-    }
-
-    function renderCoachMarkdown(text) {
-      // Escape first; every later replacement introduces only fixed formatting tags.
-      let html = escapeHtml(text || '');
-      html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-      html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-      html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
-      html = html.replace(/^-\s+(.+)$/gm, '<li>$1</li>');
-      html = html.replace(/(<li>.*<\/li>\n?)+/g, (block) => `<ul>${block}</ul>`);
-      html = html.replace(/\n\n/g, '</p><p>');
-      html = `<p>${html}</p>`;
-      html = html.replace(/<p>\s*<\/p>/g, '');
-      html = html.replace(/<p>(<h[123]>)/g, '$1');
-      html = html.replace(/(<\/h[123]>)<\/p>/g, '$1');
-      html = html.replace(/<p>(<ul>)/g, '$1');
-      html = html.replace(/(<\/ul>)<\/p>/g, '$1');
-      return html;
-    }
-
-    function renderCoachMessages() {
-      const container = document.getElementById('coachMessages');
-      if (!container) return;
-
-      if (!coachMessages.length) {
-        container.innerHTML = `
-          <div class="coach-empty" id="coachEmptyState">
-            <div class="coach-empty-title">What's next for your work?</div>
-            <div class="coach-empty-sub">Focus, flow, and planning — grounded in your tracked activity.</div>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = coachMessages.map((msg) => {
-        const role = msg.role === 'user' ? 'user' : 'assistant';
-        const body = role === 'assistant'
-          ? renderCoachMarkdown(msg.content)
-          : escapeHtml(msg.content);
-        return `
-          <div class="coach-msg ${role}">
-            <div class="coach-msg-bubble">${body}</div>
-          </div>`;
-      }).join('');
-
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function updateCoachUsageBar() {
-      const bar = document.getElementById('coachUsageBar');
-      if (!bar) return;
-      if (!coachUsage || !coachUsage.limit) {
-        bar.classList.add('u-hidden');
-        return;
-      }
-      bar.classList.remove('u-hidden');
-      const remainingText = coachUsage.remaining > 0
-        ? ` · ${coachUsage.remaining} left`
-        : ' · limit reached';
-      bar.textContent = `Coach: ${coachUsage.used}/${coachUsage.limit} prompts this month${remainingText}`;
-      bar.classList.toggle('warn', coachUsage.limit > 0 && coachUsage.remaining <= Math.ceil(coachUsage.limit * 0.2));
-    }
-
-    async function loadCoachChatUsage() {
-      if (!canUseCoachChat()) {
-        coachUsage = null;
-        updateCoachUsageBar();
-        return;
-      }
-      try {
-        const data = await invoke('get_coach_chat_usage');
-        coachUsage = data?.usage ?? data;
-        updateCoachUsageBar();
-      } catch (e) {
-        console.warn('[Coach] usage load failed:', e);
-      }
-    }
-
-    async function loadCoachChat() {
-      updateCoachLockState();
-      if (!canUseCoachChat()) return;
-      const epoch = accountEpoch;
-      const accountId = currentAccountId;
-
-      try {
-        coachMessages = await invoke('get_coach_chat_messages') || [];
-        if (!guard(epoch, accountId)) return;
-      } catch (e) {
-        console.warn('[Coach] messages load failed:', e);
-        coachMessages = [];
-      }
-      renderCoachMessages();
-      await loadCoachChatUsage();
-    }
-
-    async function sendCoachMessage(text) {
-      const trimmed = (text || '').trim();
-      if (!trimmed || coachSending) return;
-      if (!canUseCoachChat()) {
-        updateCoachLockState();
-        switchTab('tabCloudInsights');
-        return;
-      }
-
-      const epoch = accountEpoch;
-      const accountId = currentAccountId;
-
-      coachSending = true;
-      const input = document.getElementById('coachInput');
-      const thinking = document.getElementById('coachThinking');
-      const sendBtn = document.getElementById('coachSendBtn');
-      if (input) input.value = '';
-      updateCoachCharCount();
-      if (thinking) thinking.classList.remove('u-hidden');
-      if (sendBtn) sendBtn.disabled = true;
-
-      coachMessages.push({
-        id: `u-${Date.now()}`,
-        role: 'user',
-        content: trimmed,
-      });
-      renderCoachMessages();
-
-      try {
-        const result = await invoke('send_coach_chat_message', { message: trimmed });
-        if (!guard(epoch, accountId)) return;
-        if (Array.isArray(result?.messages)) {
-          coachMessages = result.messages;
-        } else if (result?.reply) {
-          coachMessages.push({
-            id: `a-${Date.now()}`,
-            role: 'assistant',
-            content: result.reply,
-          });
-        }
-        if (result?.usage) {
-          coachUsage = result.usage;
-          updateCoachUsageBar();
-        } else {
-          await loadCoachChatUsage();
-        }
-      } catch (e) {
-        coachMessages.push({
-          id: `a-${Date.now()}`,
-          role: 'assistant',
-          content: String(e),
-        });
-        showToast(String(e), 'error', 4500);
-      } finally {
-        coachSending = false;
-        if (thinking) thinking.classList.add('u-hidden');
-        if (sendBtn) sendBtn.disabled = false;
-        renderCoachMessages();
-      }
-    }
-
-    function updateCoachCharCount() {
-      const input = document.getElementById('coachInput');
-      const counter = document.getElementById('coachCharCount');
-      if (!input || !counter) return;
-      const len = input.value.length;
-      counter.textContent = `${len}/${COACH_MAX_CHARS}`;
-      counter.classList.toggle('warn', len >= COACH_MAX_CHARS);
-    }
-
-    document.getElementById('coachComposerForm')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const input = document.getElementById('coachInput');
-      sendCoachMessage(input?.value || '');
-    });
-
-    document.getElementById('coachInput')?.addEventListener('input', updateCoachCharCount);
-    document.getElementById('coachInput')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendCoachMessage(e.target.value);
-      }
-    });
-
-    document.querySelectorAll('[data-coach-prompt]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        if (!canUseCoachChat()) {
-          switchTab('tabCloudInsights');
-          return;
-        }
-        sendCoachMessage(btn.getAttribute('data-coach-prompt'));
-      });
-    });
-
-    document.getElementById('coachUpgradeBtn')?.addEventListener('click', () => {
-      if (!authSession) {
-        showCloudActivationPanel();
-        return;
-      }
-      if (!isPaidActive()) {
-        switchTab('tabProfile');
-        document.getElementById('profileLicenseCode')?.focus();
-        return;
-      }
-      switchTab('tabProfile');
-    });
-
-    updateCoachCharCount();
 
     function escapeHtml(text) {
       return String(text ?? '')
@@ -2821,7 +2555,6 @@
         .find((item) => item.dataset.tab === tabId)
         ?.classList.add('active');
       if (tabId === 'tabSummary') loadHistory();
-      if (tabId === 'tabCloudInsights') loadCoachChat();
       if (tabId === 'tabToday') refreshTodayView();
     }
 
