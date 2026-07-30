@@ -1,14 +1,14 @@
 //! Single source of truth for filesystem paths used by the agent.
 //!
-//! Motivation: hasta ahora cada módulo (`auth`, `sync`, `jira`, `linear`,
-//! `agent`, `main`) construía por su cuenta `dirs::data_local_dir().unwrap().join("Flowmates")`
-//! sin garantizar que el directorio existiese. En instalación fresca
-//! (pre-login, pre-`initialize_agent`) el directorio no existe y cualquier
-//! `Connection::open` o escritura de log fallaba silenciosamente.
+//! Motivation: every module (`auth`, `sync`, `jira`, `linear`, `agent`, `main`)
+//! used to build `dirs::data_local_dir().unwrap().join("Flowmates")` on its own,
+//! without guaranteeing the directory existed. On a fresh install (pre-login,
+//! pre-`initialize_agent`) it does not, and any `Connection::open` or log write
+//! failed silently.
 //!
-//! Todos los paths del runtime del usuario deben pasar por acá. Los paths
-//! de recursos read-only bundlados con el instalador de Tauri se resuelven
-//! vía `resource_local_llm_dir` y requieren `AppHandle`.
+//! Every runtime path must go through here. Read-only resources shipped by the
+//! Tauri bundler resolve through `resource_local_llm_dir`, which needs an
+//! `AppHandle`.
 
 use std::io::Write;
 use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
@@ -24,10 +24,10 @@ const AGENT_ERROR_LOG_FILE: &str = "agent_error.log";
 const CRASH_LOG_FILE: &str = "crash.log";
 const SCREENSHOTS_TMP_DIR: &str = "screenshots_tmp";
 
-/// Carpeta local de datos de Flowmates dentro del perfil del usuario (creada si no existe).
+/// Flowmates's local data folder inside the user profile, created if absent.
 ///
-/// Se resuelve con `dirs::data_local_dir()`: ruta real en disco, indépendante
-/// de la carpeta de instalación de l'application.
+/// Resolved through `dirs::data_local_dir()`: a real path on disk, independent
+/// of where the application itself is installed.
 pub fn app_data_dir() -> Result<PathBuf, String> {
     let base = dirs::data_local_dir().ok_or_else(|| "No local data dir available".to_string())?;
     let dir = base.join(APP_DIR_NAME);
@@ -127,7 +127,7 @@ pub fn verify_app_dir_filesystem_writable() -> Result<(), String> {
     Ok(())
 }
 
-/// Elimina capturas de depuración `capture_*` más antiguas que `max_age` (retención / cumplimiento).
+/// Deletes `capture_*` debug screenshots older than `max_age` (retention / compliance).
 pub fn prune_screenshots_tmp_older_than(max_age: std::time::Duration) -> Result<usize, String> {
     use std::time::SystemTime;
 
@@ -274,7 +274,7 @@ fn unique_download_path(downloads: &std::path::Path, filename: &str) -> PathBuf 
     downloads.join(format!("{stem}_{stamp}.pdf"))
 }
 
-/// Guarda un PDF en la carpeta Descargas del usuario y devuelve la ruta absoluta escrita.
+/// Saves a PDF into the user's Downloads folder and returns the absolute path written.
 #[tauri::command]
 pub fn save_pdf_to_downloads(filename: String, bytes: Vec<u8>) -> Result<String, String> {
     const MAX_PDF_BYTES: usize = 50 * 1024 * 1024;
@@ -319,7 +319,7 @@ fn canonical_path_in_roots(path: &Path, roots: &[PathBuf]) -> Result<PathBuf, St
     Ok(canonical)
 }
 
-/// Abre la carpeta que contiene `path` (si es un archivo, abre su directorio padre).
+/// Opens the folder containing `path` (for a file, opens its parent directory).
 #[tauri::command]
 pub fn open_path_in_file_manager(path: String) -> Result<(), String> {
     let requested = PathBuf::from(path);

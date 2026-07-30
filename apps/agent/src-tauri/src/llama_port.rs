@@ -1,15 +1,15 @@
-//! Puerto HTTP del llama-server gestionado por la app — **no** fijo (evita 8080 / proxies).
+//! HTTP port of the app-managed llama-server — deliberately **not** fixed (avoids 8080 / proxies).
 //!
-//! ## TOCTOU (liberar listener y luego que `llama-server` haga `bind`)
+//! ## TOCTOU (we drop the listener, then `llama-server` binds)
 //!
-//! No podemos pasar un FD a `llama-server` sin soporte upstream, así que tras elegir un
-//! puerto siempre hay una ventana donde otro proceso podría enlazarlo antes que el hijo.
-//! Mitigaciones aquí:
+//! We cannot hand an FD to `llama-server` without upstream support, so after picking a
+//! port there is always a window where another process could claim it before the child
+//! does. Mitigations here:
 //!
-//! 1. Preferir el rango **`FLOWMATES_PORT_MIN`..=`FLOWMATES_PORT_MAX`**, lejos de los puertos
-//!    de desarrollo habituales, para reducir colisiones.
-//! 2. Tras el primer `bind` de prueba, un **segundo `bind` inmediato** detecta si el puerto
-//!    fue reclamado entre el drop y el siguiente intento (rechaza y prueba otro).
+//! 1. Prefer the **`FLOWMATES_PORT_MIN`..=`FLOWMATES_PORT_MAX`** range, far from the usual
+//!    development ports, to reduce collisions.
+//! 2. After the first probe `bind`, an **immediate second `bind`** detects whether the port
+//!    was claimed between the drop and the next attempt (reject it and try another).
 //! 3. Fallback a `127.0.0.1:0` con **reintentos y backoff** si el rango está lleno.
 //! 4. `spawn_llama_managed_child` **reintenta** con otro puerto ante `EADDRINUSE` / log de fallo
 //!    de escucha (ver `agent.rs`).

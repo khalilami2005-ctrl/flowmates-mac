@@ -1539,8 +1539,8 @@ fn spawn_llama_managed_child(
         .unwrap_or_else(|| "Failed to start server: exhausted listen-port retries.".to_string()))
 }
 
-/// Arranca llama-server: modo automático sube desde capas GPU altas hasta que `/health`
-/// responda; modo manual fuerza `--n-gpu-layers` fijo.
+/// Starts llama-server: automatic mode walks down from a high GPU layer count until
+/// `/health` answers; manual mode forces a fixed `--n-gpu-layers`.
 #[tauri::command]
 pub fn start_server(
     app: tauri::AppHandle,
@@ -1767,7 +1767,7 @@ fn auto_tier_start(app: &tauri::AppHandle, generation: u64) -> Result<serde_json
     ))
 }
 
-/// Tras fallos interminables con GPU (drivers/hardware), reinicia sólo CPU — más lento pero mucho más compatible.
+/// After repeated GPU failures (drivers/hardware), restarts CPU-only — slower, far more compatible.
 #[tauri::command]
 pub fn restart_llama_server_cpu_only(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
     stop_managed_server()?;

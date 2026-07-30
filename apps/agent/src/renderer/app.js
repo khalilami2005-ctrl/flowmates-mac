@@ -928,9 +928,9 @@
           return;
         }
 
-        // Fallback: si el backend no devolvió activo (p.ej. versión vieja del
-        // agente) garantizamos persistir la primera membresía, así
-        // session.team_id nunca queda NULL al subir reportes.
+        // Fallback: if the backend returned no active team (e.g. an older agent
+        // version), persist the first membership so session.team_id is never NULL
+        // when reports are uploaded.
         if (!activeId && teams[0]?.team_id) {
           activeId = String(teams[0].team_id);
           try {

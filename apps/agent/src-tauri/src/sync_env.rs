@@ -99,7 +99,10 @@ mod tests {
             ],
             || {
                 assert!(supabase_url().is_empty(), "a default host would be a leak");
-                assert!(supabase_anon_key().is_empty(), "a default key would be a leak");
+                assert!(
+                    supabase_anon_key().is_empty(),
+                    "a default key would be a leak"
+                );
                 assert!(!cloud_configured());
                 assert!(require_cloud().is_err());
             },

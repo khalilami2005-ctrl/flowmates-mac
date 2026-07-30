@@ -337,10 +337,7 @@ const SUPABASE_SUCCESS_HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
 fn supabase_login_success_html() -> String {
     static HTML: OnceLock<String> = OnceLock::new();
     HTML.get_or_init(|| {
-        let bytes = include_bytes!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/flowmates-mark.png"
-        ));
+        let bytes = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/flowmates-mark.png"));
         let b64 = base64::engine::general_purpose::STANDARD.encode(bytes);
         let data_uri = format!("data:image/png;base64,{}", b64);
         SUPABASE_SUCCESS_HTML_TEMPLATE.replace("__FLOW_LOGO_DATA_URI__", &data_uri)
@@ -1094,9 +1091,8 @@ fn fetch_user_info(provider: &str, access_token: &str) -> Result<AuthUser, Strin
 
 fn get_db_conn() -> Result<Connection, String> {
     let conn = Connection::open(crate::paths::db_path()?).map_err(|e| e.to_string())?;
-    // Asegurar tabla `config` por si somos los primeros en abrir la DB (antes
-    // de que agent::init_db corra). Sin esto, los INSERT posteriores también
-    // fallan en silencio.
+    // Ensure the `config` table exists in case we are the first to open the DB
+    // (before agent::init_db runs). Without this, later INSERTs also fail silently.
     conn.execute(
         "CREATE TABLE IF NOT EXISTS config (key TEXT PRIMARY KEY, value TEXT)",
         [],
