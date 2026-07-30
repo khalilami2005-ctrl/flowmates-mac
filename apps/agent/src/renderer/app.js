@@ -2537,7 +2537,7 @@
       if (e.target.id === 'statusReportModal') closeStatusReportModal();
     });
     const TASK_BAR_COLORS = [
-      'hsl(var(--summary-purple))',
+      'hsl(var(--summary-coral))',
       'hsl(var(--summary-magenta))',
       'hsl(var(--summary-blue))',
       'hsl(var(--summary-teal))',
