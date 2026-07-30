@@ -40,6 +40,7 @@ fn main() {
     // State the backend situation once, out loud. Silence here used to mean a
     // developer could not tell an unconfigured build from a misconfigured one.
     eprintln!("[Flowmates] backend: {}", app_lib::backend_status());
+    eprintln!("[Flowmates] secrets: {}", app_lib::secret_store_name());
 
     std::panic::set_hook(Box::new(|info| {
         let msg = format!(

@@ -136,3 +136,9 @@ pub fn backend_status() -> String {
         (false, true) => format!("{url} (key present)"),
     }
 }
+
+/// Which store holds secrets in this build. Surfaced at startup so the
+/// difference between development and release is never a guess.
+pub fn secret_store_name() -> &'static str {
+    secure_store::backend_name()
+}
